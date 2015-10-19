@@ -7,13 +7,21 @@ import sys
 import csv
 from collections import Counter
 
-def process(filename)
+def process(filename):
+	ingredientSet = set()
+	cuisineMap = {}
+	X = []
+	Y = []
+	countCuisine = 0
 	with open(filename, 'rb') as dataset:
 		datareader = csv.reader(dataset)
 		for row in datareader:
-			print row[0]
-			print ' '.join(row)
-
-
-
-process(data.csv)
+			cuisine = row[0]
+			if cuisine not in cuisineMap:
+				cuisineMap[cuisine] = countCuisine
+				countCuisine = countCuisine + 1
+			ingredients = collections.Counter(row[1:])
+			X.append(ingredients)
+			Y.append(cuisineMap.get(cuisine))
+			ingredientSet.update(ingredients)
+	return X, Y, ingredientSet, cuisineMap
