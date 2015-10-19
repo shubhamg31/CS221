@@ -32,9 +32,9 @@ def process(filename):
 				else:
 					featureVector[index] = 0
 			X.append(featureVector)
-			Y.append(cuisineMap.get(cuisine))
+			Y.append(cuisine)
 	return X, Y, ingredientSet, cuisineMap
 
 
-x, y, i, c = process('data.csv')
-print x
+# x, y, i, c = process('data.csv')
+# print x

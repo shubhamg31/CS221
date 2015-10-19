@@ -7,7 +7,7 @@ import scipy as sp
 import csv
 import string
 from collections import * 
-import processDataset
+import processDataSet
 from sklearn import linear_model
 
 # cuisine = Counter()
@@ -39,8 +39,9 @@ def doLogisticRegression(X, Y):
 	print count*1.0/len(Y)
 	return predictions
 
-# X, Y, ingredientSet, cuisineMap = processDataset.process()
-X = np.random.rand(10000,2)
-Y = np.random.rand(10000,1)
-Y = [1 if label > 0.5 else 0 for label in Y]
+X, Y, ingredientSet, cuisineMap = processDataSet.process("../project/data/recipe_data.csv")
 predictions = doLogisticRegression(X, Y)
+Y = Counter(Y)
+predictions = Counter(predictions)
+for k, v in cuisineMap.iteritems():
+	print 'cuisine: ', k, ' original:', Y[v], ' predicted: ', predictions[v]
