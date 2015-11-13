@@ -1,64 +1,91 @@
 ############################################################
-# Course scheduling specifics.
+# Meal Plan specifics.
 
-# Information about a course:
-# - self.cid: course ID (e.g., CS221)
-# - self.name: name of the course (e.g., Artificial Intelligence)
-# - self.quarters: quarters without the years (e.g., Aut)
-# - self.minUnits: minimum allowed units to take this course for (e.g., 3)
-# - self.maxUnits: maximum allowed units to take this course for (e.g., 3)
-# - self.prereqs: list of course IDs that must be taken before taking this course.
-class Course:
+# Information about a Recipe:
+# - self.rid: recipe ID 
+# - self.name: name of the recipe
+# - self.cuisine: cuisine of recipe
+# - self.calorieCount: calorie count of recipe
+# - self.cookingTime: cooking time of recipe
+# - self.servingSize: number of servings
+# - self.ingredients: dictionary of ingredient names to quantity required (infinity for now)
+class Recipe:
     def __init__(self, info):
         self.__dict__.update(info)
 
-    # Return whether this course is offered in |quarter| (e.g., Aut2013).
-    def is_offered_in(self, quarter):
-        return any(quarter.startswith(q) for q in self.quarters)
+    def getName(self):
+        return self.name
 
-    def short_str(self): return '%s: %s' % (self.cid, self.name)
+    def getCalorieCount(self):
+        return self.calorieCount
+
+    def getCookingTime(self):
+        return self.cookingTime
+
+    def getServingSize(self):
+        return self.servingSize
+
+    def getIngredients(self):
+        return self.ingredients
+
+    def getCuisine(self):
+        return self.cuisine
+
+    def has_all_ingreds(self, ingredsAvailable):
+        return set(self.ingredients.keys()) < set(ingredsAvailable)
+
+    def short_str(self): return '%s: %s' % (self.rid, self.name)
 
     def __str__(self):
-        return 'Course{cid: %s, name: %s, quarters: %s, units: %s-%s, prereqs: %s}' % (self.cid, self.name, self.quarters, self.minUnits, self.maxUnits, self.prereqs)
+        return 'Recipe{rid: %s, name: %s, cuisine: %s, calorie count: %s, cooking time: %s, serving size: %s, ingredients: %s}' % (self.rid, self.name, self.cuisine, self.calorieCount, self.cookingTime, self.servingSize, self.ingredients)
 
 
-# Information about all the courses
-class CourseBulletin:
-    def __init__(self, coursesPath):
+# Information about all the Recipes
+class RecipeBook:
+    def __init__(self, recipesPath):
         """
-        Initialize the bulletin.
+        Initialize the recipe book.
 
-        @param coursePath: Path of a file containing all the course information.
+        @param recipesPath: Path of a file containing all the recipe information.
         """
-        # Read courses (JSON format)
-        self.courses = {}
-        info = json.loads(open(coursesPath).read())
-        for courseInfo in info.values():
-            course = Course(courseInfo)
-            self.courses[course.cid] = course
+        # Read recipes (CSV format)
+        self.recipes = {}
+        with open(recipesPath, 'rb') as dataset:
+            datareader = csv.reader(dataset)
+            for row in datareader:
+                recipeInfo = {}
+                recipeInfo["rid"] = row[0]
+                recipeInfo["name"] = row[1]
+                recipeInfo["cookingTime"] = int(row[2])
+                recipeInfo["calorieCount"] = int(row[3])
+                ingredients = {}
+                for ingred in row[4:]:
+                    idx = string.find(ingred,";")
+                    if idx<0:
+                        ingredients[ingred[0:idx]] = 0
+                    else:
+                        idx2 = string.find(ingred[idx+1:],";")
+                        ingredients[ingred[0:idx]] = ingred[idx+1:idx2]
+                recipeInfo["ingredients"] = ingredients
+                self.recipes[row[0]] = Recipe(recipeInfo)
 
 # A request to take one of a set of courses at some particular times.
 class Request:
-    def __init__(self, cids, quarters, prereqs, weight):
+    def __init__(self, rid, meals, weight):
         """
         Create a Request object.
 
-        @param cids: list of courses from which only one is chosen.
-        @param quarters: list of strings representing the quarters (e.g. Aut2013)
-            the course must be taken in.
-        @param prereqs: list of strings representing courses pre-requisite of
-            the requested courses separated by comma. (e.g. CS106,CS103,CS109)
-        @param weight: real number denoting how much the student wants to take
-            this/or one the requested courses.
+        @param rid: The rid of recipe
+        @param meals: meals for which the recipe satisfies all contraints
+        @param weight: real number denoting how good the recipe is. (if cuisine pref for meal is added)
         """
-        self.cids = cids
-        self.quarters = quarters
-        self.prereqs = prereqs
+        self.rid = rid
+        self.meals = meals
         self.weight = weight
 
     def __str__(self):
-        return 'Request{%s %s %s %s}' % \
-            (self.cids, self.quarters, self.prereqs, self.weight)
+        return 'Request{Recipe Id: %s, Meals: %s, Weight: %s}' % \
+            (self.id, self.meals, self.weight)
 
     def __eq__(self, other): return str(self) == str(other)
 
@@ -70,127 +97,41 @@ class Request:
 
 # Given the path to a preference file and a
 class Profile:
-    def __init__(self, bulletin, prefsPath):
+    def __init__(self, recipeBook, prefsPath):
         """
-        Parses the preference file and generate a student's profile.
+        Parses the preference file and generates a family's preferences.
 
-        @param prefsPath: Path to a txt file that specifies a student's request
+        @param prefsPath: Path to a txt file that specifies the family's preferences
             in a particular format.
         """
-        self.bulletin = bulletin
+        self.recipeBook = recipeBook
 
         # Read preferences
-        self.minUnits = 9  # minimum units per quarter
-        self.maxUnits = 12 # maximum units per quarter
-        self.quarters = [] # (e.g., Aut2013)
-        self.taken = set()  # Courses that we've taken
-        self.requests = []
-        for line in open(prefsPath):
-            m = re.match('(.*)\\s*#.*', line)
-            if m: line = m.group(1)
-            line = line.strip()
-            if len(line) == 0: continue
-
-            # Units
-            m = re.match('minUnits (.+)', line)
-            if m:
-                self.minUnits = int(m.group(1))
-                continue
-            m = re.match('maxUnits (.+)', line)
-            if m:
-                self.maxUnits = int(m.group(1))
-                continue
-
-            # Register a quarter (quarter, year)
-            m = re.match('register (.+)', line)
-            if m:
-                quarter = m.group(1)
-                m = re.match('(Aut|Win|Spr|Sum)(\d\d\d\d)', quarter)
-                if not m:
-                    raise Exception("Invalid quarter '%s', want something like Spr2013" % quarter)
-                self.quarters.append(quarter)
-                continue
-
-            # Already taken a course
-            m = re.match('taken (.+)', line)
-            if m:
-                cid = self.ensure_course_id(m.group(1))
-                self.taken.add(cid)
-                continue
-
-            # Request to take something
-            # also match & to parse MS&E courses correctly
-            m = re.match('request ([\w&]+)(.*)', line)
-            if m:
-                cids = [self.ensure_course_id(m.group(1))]
-                quarters = []
-                prereqs = []
-                weight = 1  # Default: would want to take
-                args = m.group(2).split()
-                for i in range(0, len(args), 2):
-                    if args[i] == 'or':
-                        cids.append(self.ensure_course_id(args[i+1]))
-                    elif args[i] == 'after':  # Take after a course
-                        prereqs = [self.ensure_course_id(c) for c in args[i+1].split(',')]
-                    elif args[i] == 'in':  # Take in a particular quarter
-                        quarters = [self.ensure_quarter(q) for q in args[i+1].split(',')]
-                    elif args[i] == 'weight':  # How much is taking this class worth
-                        weight = float(args[i+1])
-                    elif args[i].startswith('#'): # Comments
-                        break
-                    else:
-                        raise Exception("Invalid arguments: %s" % args)
-                self.requests.append(Request(cids, quarters, prereqs, weight))
-                continue
-
-            raise Exception("Invalid command: '%s'" % line)
-
-        # Determine any missing prereqs and validate the request.
-        self.taken = set(self.taken)
-        self.taking = set()
-
-        # Make sure each requested course is taken only once
-        for req in self.requests:
-            for cid in req.cids:
-                if cid in self.taking:
-                    raise Exception("Cannot request %s more than once" % cid)
-            self.taking.update(req.cids)
-
-        # Make sure user-designated prerequisites are requested
-        for req in self.requests:
-            for prereq in req.prereqs:
-                if prereq not in self.taking:
-                    raise Exception("You must take " + prereq)
-
-        # Add missing prerequisites if necessary
-        for req in self.requests:
-            for cid in req.cids:
-                course = self.bulletin.courses[cid]
-                for prereq_cid in course.prereqs:
-                    if prereq_cid in self.taken:
-                        continue
-                    elif prereq_cid in self.taking:
-                        if prereq_cid not in req.prereqs:
-                            req.prereqs.append(prereq_cid)
-                            print "INFO: Additional prereqs inferred: %s after %s" % \
-                                (cid, prereq_cid)
-                    else:
-                        print "WARNING: missing prerequisite of %s -- %s; you should add it as 'taken' or 'request'" %  \
-                            (cid, self.bulletin.courses[prereq_cid].short_str())
+        self.maxTotalCalories = float('inf')  # maximum total calories
+        self.mealsToMaxTimes = {} # dict from meal to max cooking time
+        self.availableIngreds = {} # dict from ingred to quantity
+        lines = []
+        file1 = open(prefsPath)
+        lines = file1.readlines()
+        self.maxTotalCalories = int(lines[0])
+        i = 1
+        while lines[i] != "---\n":
+            mealToTimeReq = lines[i].split()
+            if mealToTimeReq[0] in self.mealsToMaxTimes.keys():
+                raise Exception("Cannot request %s more than once" % mealToTimeReq[0])
+            self.mealsToMaxTimes[mealToTimeReq[0]] = int(mealToTimeReq[1])
+            i+=1
+        i+=1
+        while lines[i] != "---\n":
+            ingredToQty = lines[i].split(";")
+            if ingredToQty[0] in self.availableIngreds.keys():
+                raise Exception("Cannot mention %s more than once" % ingredToQty[0])
+            self.availableIngreds[ingredToQty[0]] = " ".join(j for j in ingredToQty[1:])
+            i+=1
 
     def print_info(self):
-        print "Units: %d-%d" % (self.minUnits, self.maxUnits)
-        print "Quarter: %s" % self.quarters
-        print "Taken: %s" % self.taken
-        print "Requests:"
-        for req in self.requests: print '  %s' % req
-
-    def ensure_course_id(self, cid):
-        if cid not in self.bulletin.courses:
-            raise Exception("Invalid course ID: '%s'" % cid)
-        return cid
-
-    def ensure_quarter(self, quarter):
-        if quarter not in self.quarters:
-            raise Exception("Invalid quarter: '%s'" % quarter)
-        return quarter
+        print "Maximum Total Calories: %d" % self.maxTotalCalories
+        print "Meals: %s" % self.mealsToMaxTimes.keys()
+        print "Maximum Time per meal: %s" % self.mealsToMaxTimes
+        print "Ingredients:"
+        for ingred, qty in self.availableIngreds.iteritems(): print '%s - %s' % (ingred, qty)
