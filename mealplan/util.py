@@ -1,4 +1,8 @@
 import json, re
+import plannerReqs
+import csp
+import algorithms
+import util
 
 def get_or_variable(csp, name, variables, value):
     """
@@ -164,6 +168,5 @@ def print_meal_plan_solution(solution):
             else:
                 print "  %s\t%s\t%s" % (quarter, 'None', course)
 
-recipeBook = RecipeBook('test.csv')
-profile = Profile(recipeBook, "exampleFamilyPref.txt")
-profile.print_info()
+# recipeBook = RecipeBook('test.csv')
+# profile = Profile(recipeBook, "exampleFamilyPref.txt")

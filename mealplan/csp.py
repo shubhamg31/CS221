@@ -7,7 +7,7 @@ class MealPlanCSPConstructor():
         @param recipebook: A recipe book with a list of recipes
         @param profile: A user's profile and requests
         """
-        self.bulletin = bulletin
+        self.recipebook = recipebook
         self.profile = profile
 
     def get_basic_csp(self):
@@ -20,8 +20,9 @@ class MealPlanCSPConstructor():
         """
         csp = util.CSP()
         self.add_variables(csp)
-        self.add_bulletin_constraints(csp)
         self.add_norepeating_constraints(csp)
+        self.add_cooking_time_constraints(csp)
+        self.add_calorie_count_constraint(csp)
         return csp
 
     def add_variables(self, csp):
@@ -33,7 +34,7 @@ class MealPlanCSPConstructor():
         """
         for req in self.profile.requests:
             for meal in self.profile.meals:
-                csp.add_variable((req, meal), req.rids + [None])
+                csp.add_variable((req, meal), req.rid + [None])
 
     def add_norepeating_constraints(self, csp):
         """
@@ -48,6 +49,24 @@ class MealPlanCSPConstructor():
                     csp.add_binary_factor((req, meal), (req, meal2), \
                         lambda rid1, rid2: rid1 is None or rid2 is None)
 
+    def add_cooking_time_constraints(self, csp):
+        for req in self.profile.requests:
+            for meal in self.profile.meals:
+                csp.add_unary_factor((req, meal), lambda rid: self.recipebook[rid].getCookingTime() < self.profile.mealsToMaxTimes[meal])
+
+    def add_calorie_count_constraint(self, csp):
+        mealRecipeMap = {}
+        for req in self.profile.requests:
+            for meal in self.profile.meals:
+                var = (req.rid, meal)
+                if meal in mealRecipeMap:
+                    mealRecipeMap[meal].append(var)
+                else:
+                    mealRecipeMap[meal] = [var]
+                csp.add_variable(var, range(self.recipebook[req.rid].getCalorieCount()))
+                csp.add_binary_factor((req, meal), var, lambda rid, cookingTime:  cookingTime > 0 if rid == req.rid else cookingTime == 0)
+        for meal, recipes in mealRecipeMap.iteritems():
+            sumVar = get_sum_variable(csp, (meal), recipes, self.profile.maxTotalCalories)
 
 # General code for representing a weighted CSP (Constraint Satisfaction Problem).
 # All variables are being referenced by their index instead of their original

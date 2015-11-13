@@ -1,18 +1,10 @@
-#!/usr/bin/env python
-"""
-Grader for template assignment
-Optionally run as grader.py [basic|all] to run a subset of tests
-"""
-
 import random
 import plannerReqs
+import csp
+import algorithms
 import util
 import collections
 import copy
-
-
-############################################################
-# Problem 3
 
 def verify_meal_plan(recipeBook, profile, meal_plan):
     """
@@ -28,11 +20,11 @@ def verify_meal_plan(recipeBook, profile, meal_plan):
         print 'recipe repeated'
         return False
 
-    # Ingredients of recipe should be available
-    goodSchedule *= all(recipe.has_all_ingreds(profile.availableIngreds) for recipe in all_recipes)
-    if not goodSchedule:
-        print 'ingredients not available for recipe'
-        return False
+    # # Ingredients of recipe should be available
+    # goodSchedule *= all(recipe.has_all_ingreds(profile.availableIngreds) for recipe in all_recipes)
+    # if not goodSchedule:
+    #     print 'ingredients not available for recipe'
+    #     return False
 
     # Check for calorie counts
     calorieCount = 0
@@ -54,3 +46,7 @@ def verify_meal_plan(recipeBook, profile, meal_plan):
 recipeBook = plannerReqs.RecipeBook('test.csv')
 profile = plannerReqs.Profile(recipeBook, "exampleFamilyPref.txt")
 profile.print_info()
+cspConstructor = submission.MealPlanCSPConstructor(recipeBook, copy.deepcopy(profile))
+csp = cspConstructor.get_basic_csp()
+alg = submission.BacktrackingSearch()
+alg.solve(csp)
