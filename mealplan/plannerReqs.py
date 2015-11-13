@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 import random
-=======
 import csv, string
 
->>>>>>> 6ad9488b53a168a2ca935ada98f2399f13f848d2
 ############################################################
 # Meal Plan specifics.
 
@@ -66,6 +63,8 @@ class RecipeBook:
                 recipeInfo["name"] = row[1]
                 recipeInfo["cookingTime"] = int(row[2])
                 recipeInfo["calorieCount"] = int(row[3])
+                recipeInfo["cuisine"] = None
+                recipeInfo["servingSize"] = None
                 ingredients = {}
                 for ingred in row[4:]:
                     idx = string.find(ingred,";")
@@ -116,6 +115,7 @@ class Profile:
         
 
         # Read preferences
+        self.meals = []
         self.maxTotalCalories = float('inf')  # maximum total calories
         self.mealsToMaxTimes = {} # dict from meal to max cooking time
         self.availableIngreds = {} # dict from ingred to quantity
@@ -128,6 +128,7 @@ class Profile:
             mealToTimeReq = lines[i].split()
             if mealToTimeReq[0] in self.mealsToMaxTimes.keys():
                 raise Exception("Cannot request %s more than once" % mealToTimeReq[0])
+            self.meals.append(mealToTimeReq[0])
             self.mealsToMaxTimes[mealToTimeReq[0]] = int(mealToTimeReq[1])
             i+=1
         i+=1
@@ -137,12 +138,12 @@ class Profile:
                 raise Exception("Cannot mention %s more than once" % ingredToQty[0])
             self.availableIngreds[ingredToQty[0]] = " ".join(j for j in ingredToQty[1:])
             i+=1
-        if len(availableIngreds) == 0:
-            availableIngreds = None
+        if len(self.availableIngreds) == 0:
+            self.availableIngreds = None
         
         self.requests = []
         i = 0
-        nRecipes = 40
+        nRecipes = 10
         maxCookingTime = max(self.mealsToMaxTimes.values())
         while i < nRecipes:
             recipe = random.choice(recipeBook.recipes.values())
