@@ -1,3 +1,4 @@
+import random
 ############################################################
 # Meal Plan specifics.
 
@@ -107,6 +108,7 @@ class Profile:
             in a particular format.
         """
         self.recipeBook = recipeBook
+        
 
         # Read preferences
         self.maxTotalCalories = float('inf')  # maximum total calories
@@ -132,6 +134,16 @@ class Profile:
             i+=1
         if len(availableIngreds) == 0:
             availableIngreds = None
+        
+        self.requests = []
+        i = 0
+        nRecipes = 40
+        maxCookingTime = max(self.mealsToMaxTimes.values())
+        while i < nRecipes:
+            recipe = random.choice(recipeBook.recipes.values())
+            if recipe not in self.requests and recipe.getCookingTime() < maxCookingTime:
+                self.requests.append(recipe)
+                i+=1
 
     def print_info(self):
         print "Maximum Total Calories: %d" % self.maxTotalCalories
