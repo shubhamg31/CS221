@@ -32,6 +32,8 @@ class Recipe:
         return self.cuisine
 
     def has_all_ingreds(self, ingredsAvailable):
+        if ingredsAvailable is None:
+            return True
         return set(self.ingredients.keys()) < set(ingredsAvailable)
 
     def short_str(self): return '%s: %s' % (self.rid, self.name)
@@ -128,6 +130,8 @@ class Profile:
                 raise Exception("Cannot mention %s more than once" % ingredToQty[0])
             self.availableIngreds[ingredToQty[0]] = " ".join(j for j in ingredToQty[1:])
             i+=1
+        if len(availableIngreds) == 0:
+            availableIngreds = None
 
     def print_info(self):
         print "Maximum Total Calories: %d" % self.maxTotalCalories
