@@ -163,7 +163,3 @@ def print_meal_plan_solution(solution):
                 print "  %s\t%s\t%s" % (quarter, units, course)
             else:
                 print "  %s\t%s\t%s" % (quarter, 'None', course)
-
-recipeBook = RecipeBook('test.csv')
-profile = Profile(recipeBook, "exampleFamilyPref.txt")
-profile.print_info()
