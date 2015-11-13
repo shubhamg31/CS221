@@ -1,3 +1,5 @@
+import csv, string
+
 ############################################################
 # Meal Plan specifics.
 
@@ -130,8 +132,8 @@ class Profile:
                 raise Exception("Cannot mention %s more than once" % ingredToQty[0])
             self.availableIngreds[ingredToQty[0]] = " ".join(j for j in ingredToQty[1:])
             i+=1
-        if len(availableIngreds) == 0:
-            availableIngreds = None
+        if len(self.availableIngreds) == 0:
+            self.availableIngreds = None
 
     def print_info(self):
         print "Maximum Total Calories: %d" % self.maxTotalCalories

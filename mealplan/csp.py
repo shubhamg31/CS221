@@ -18,7 +18,7 @@ class MealPlanCSPConstructor():
 
         @return csp: A CSP where basic variables and constraints are added.
         """
-        csp = util.CSP()
+        csp = CSP()
         self.add_variables(csp)
         self.add_norepeating_constraints(csp)
         self.add_cooking_time_constraints(csp)
