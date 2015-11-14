@@ -9,15 +9,17 @@ from collections import Counter
 
 def readFile(filename):
     cuisineIngrDict = collections.defaultdict(list)
+    countOfCuisine = collections.Counter()
     testSet = []
     with open(filename, 'rb') as dataset:
         datareader = csv.reader(dataset)
         for row in datareader:
-            if random.random() < 0.8:
-    			cuisineIngrDict[row[0]].append(row[1:])
+            if random.random() < 0.9:
+                cuisineIngrDict[row[0]].append(row[1:])
+                countOfCuisine[row[0]]+=1
             else:
                 testSet.append(row)
-    return cuisineIngrDict, testSet
+    return cuisineIngrDict, testSet, countOfCuisine
 
 def generateModels(cuisineIngrDict):
     ingrCount = {}
@@ -29,7 +31,7 @@ def generateModels(cuisineIngrDict):
                 ingrCount[ingr][k]+=1
     return ingrCount
 
-def predictCuisine(listOfIngreds, ingrCount):
+def predictCuisine(listOfIngreds, ingrCount, countOfCuisine):
     probOfCuisine = {}
     for ingred in listOfIngreds:
         if ingred in ingrCount:
@@ -38,13 +40,13 @@ def predictCuisine(listOfIngreds, ingrCount):
             if cuisine not in probOfCuisine:
                 probOfCuisine[cuisine] = 0.0
             probOfCuisine[cuisine] += (count*1.0/totalOccur)
-    return max(probOfCuisine.iteritems(), key=operator.itemgetter(1))[0]
+    return max(probOfCuisine.iteritems(), key=lambda x: x[1]*countOfCuisine[x[0]])[0]
 
-cuisineIngrDict, testSet = readFile("data.csv")
+cuisineIngrDict, testSet, countOfCuisine = readFile("data.csv")
 ingrCount = generateModels(cuisineIngrDict)
 wrong = 0
 for row in testSet:
-    prediction = predictCuisine(row[1:], ingrCount)
+    prediction = predictCuisine(row[1:], ingrCount, countOfCuisine)
     if prediction != row[0]:
         wrong+=1
 print "Fraction of wrong classifications:", str(wrong*1.0/len(testSet))
