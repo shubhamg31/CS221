@@ -42,7 +42,15 @@ class Recipe:
     def short_str(self): return '%s: %s' % (self.rid, self.name)
 
     def __str__(self):
-        return 'Recipe{rid: %s, name: %s, cuisine: %s, calorie count: %s, cooking time: %s, serving size: %s, ingredients: %s}' % (self.rid, self.name, self.cuisine, self.calorieCount, self.cookingTime, self.servingSize, self.ingredients)
+        return 'Recipe{rid: %s, name: %s, cuisine: %s, calorie count: %s, cooking time: %s, serving size: %s}' % (self.rid, self.name, self.cuisine, self.calorieCount, self.cookingTime, self.servingSize)
+
+    def __eq__(self, other): return str(self) == str(other)
+
+    def __cmp__(self, other): return cmp(str(self), str(other))
+
+    def __hash__(self): return hash(str(self))
+
+    def __repr__(self): return str(self)
 
 
 # Information about all the Recipes
@@ -66,7 +74,8 @@ class RecipeBook:
                 recipeInfo["cuisine"] = None
                 recipeInfo["servingSize"] = None
                 ingredients = {}
-                for ingred in row[4:]:
+                ingreds = row[4:]
+                for ingred in ingreds:
                     idx = string.find(ingred,";")
                     if idx<0:
                         ingredients[ingred[0:idx]] = 0
@@ -83,7 +92,7 @@ class Request:
         Create a Request object.
 
         @param rid: The rid of recipe
-        @param meals: meals for which the recipe satisfies all contraints
+        @param meals: meals for which the recipe satisfies all constraints
         @param weight: real number denoting how good the recipe is. (if cuisine pref for meal is added)
         """
         self.rid = rid
@@ -136,14 +145,14 @@ class Profile:
             ingredToQty = lines[i].split(";")
             if ingredToQty[0] in self.availableIngreds.keys():
                 raise Exception("Cannot mention %s more than once" % ingredToQty[0])
-            self.availableIngreds[ingredToQty[0]] = " ".join(j for j in ingredToQty[1:])
+            self.availableIngreds[ingredToQty[0].strip()] = " ".join(j.strip() for j in ingredToQty[1:])
             i+=1
         if len(self.availableIngreds) == 0:
             self.availableIngreds = None
         
         self.requests = []
         i = 0
-        nRecipes = 10
+        nRecipes = 5
         maxCookingTime = max(self.mealsToMaxTimes.values())
         while i < nRecipes:
             recipe = random.choice(recipeBook.recipes.values())
@@ -156,4 +165,4 @@ class Profile:
         print "Meals: %s" % self.mealsToMaxTimes.keys()
         print "Maximum Time per meal: %s" % self.mealsToMaxTimes
         print "Ingredients:"
-        for ingred, qty in self.availableIngreds.iteritems(): print '%s - %s' % (ingred, qty)
+        for ingred, qty in self.availableIngreds.iteritems(): print '%s: %s' % (ingred, qty)
