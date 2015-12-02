@@ -154,7 +154,7 @@ def get_sum_variable(csp, name, variables, maxSum):
 def extract_meal_plan_solution(profile, assign):
    """
    Given an assignment returned from the CSP solver, reconstruct the plan. It
-   is assume that (recipe, meal) is used as the variable to indicate if a recipe
+   is assumed that (recipe, meal) is used as the variable to indicate if a recipe
    is being assigned to a speific meal
 
    @param profile: A family's preference

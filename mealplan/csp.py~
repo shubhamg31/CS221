@@ -1,3 +1,4 @@
+import util, collections
 class MealPlanCSPConstructor():
 
     def __init__(self, recipebook, profile):
@@ -23,6 +24,7 @@ class MealPlanCSPConstructor():
         self.add_norepeating_constraints(csp)
         self.add_cooking_time_constraints(csp)
         self.add_calorie_count_constraint(csp)
+        self.assign_validRecipe_everyMeal(csp)
         return csp
 
     def add_variables(self, csp):
@@ -49,10 +51,18 @@ class MealPlanCSPConstructor():
                     csp.add_binary_factor((req, meal), (req, meal2), \
                         lambda taken1, taken2: not (taken1 and taken2))
 
+    def assign_validRecipe_everyMeal(self, csp):
+        for meal in self.profile.meals:
+            requests = []
+            for req in self.profile.requests:
+                requests.append((req, meal))
+            orVar = util.get_or_variable(csp, (meal), requests, True)    
+            csp.add_unary_factor(orVar, lambda v: True if v else False)
+
     def add_cooking_time_constraints(self, csp):
         for req in self.profile.requests:
             for meal in self.profile.meals:
-                csp.add_unary_factor((req, meal), lambda taken1: req.getCookingTime <= self.profile.mealsToMaxTimes[meal] if taken1 else True)
+                csp.add_unary_factor((req, meal), lambda taken1: req.getCookingTime() <= self.profile.mealsToMaxTimes[meal] if taken1 else True)
 
     def add_calorie_count_constraint(self, csp):
         varsList = []
@@ -62,7 +72,7 @@ class MealPlanCSPConstructor():
                 csp.add_variable(var, [0,req.getCalorieCount()])
                 varsList.append(var)
                 csp.add_binary_factor((req, meal), var, lambda taken1, calorieCount: calorieCount > 0 if taken1 else calorieCount == 0 )
-        sumVar = util.get_sum_variable(csp, "total", varsList, self.profile.maxTotalCalories)
+        util.get_sum_variable(csp, "total", varsList, self.profile.maxTotalCalories)
 
 # General code for representing a weighted CSP (Constraint Satisfaction Problem).
 # All variables are being referenced by their index instead of their original

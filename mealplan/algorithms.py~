@@ -111,6 +111,7 @@ class BacktrackingSearch():
         @param numAssigned: Number of currently assigned variables
         @param weight: The weight of the current partial assignment.
         """
+
         self.numOperations += 1
         assert weight > 0
         if numAssigned == self.csp.numVars:

@@ -59,6 +59,7 @@ class MealPlanCSPConstructor():
             orVar = util.get_or_variable(csp, (meal), requests, True)    
             csp.add_unary_factor(orVar, lambda v: True if v else False)
 
+
     def add_cooking_time_constraints(self, csp):
         for req in self.profile.requests:
             for meal in self.profile.meals:

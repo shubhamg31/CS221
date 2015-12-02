@@ -170,8 +170,9 @@ class Profile:
         print "Maximum Time per meal: %s" % self.mealsToMaxTimes
         print "Ingredients:"
         for ingred, qty in self.availableIngreds.iteritems(): print '%s: %s' % (ingred, qty)
-
+'''
 profile = Profile("exampleFamilyPref.txt")
 recipeBook = RecipeBook("test.csv", profile)
 profile.print_info()
 print recipeBook.recipes
+'''
