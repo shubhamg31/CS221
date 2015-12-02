@@ -47,7 +47,7 @@ class Recipe:
 
 # Information about all the Recipes
 class RecipeBook:
-    def __init__(self, recipesPath):
+    def __init__(self, recipesPath, profile):
         """
         Initialize the recipe book.
 
@@ -58,13 +58,6 @@ class RecipeBook:
         with open(recipesPath, 'rb') as dataset:
             datareader = csv.reader(dataset)
             for row in datareader:
-                recipeInfo = {}
-                recipeInfo["rid"] = row[0]
-                recipeInfo["name"] = row[1]
-                recipeInfo["cookingTime"] = int(row[2])
-                recipeInfo["calorieCount"] = int(row[3])
-                recipeInfo["cuisine"] = None
-                recipeInfo["servingSize"] = None
                 ingredients = {}
                 for ingred in row[4:]:
                     idx = string.find(ingred,";")
@@ -73,8 +66,16 @@ class RecipeBook:
                     else:
                         idx2 = string.find(ingred[idx+1:],";")
                         ingredients[ingred[0:idx]] = ingred[idx+1:idx2]
-                recipeInfo["ingredients"] = ingredients
-                self.recipes[row[0]] = Recipe(recipeInfo)
+                if set(ingredients.keys()).issubset(set(profile.availableIngreds.keys())):
+                    recipeInfo = {}
+                    recipeInfo["rid"] = row[0]
+                    recipeInfo["name"] = row[1]
+                    recipeInfo["cookingTime"] = int(row[2])
+                    recipeInfo["calorieCount"] = int(row[3])
+                    recipeInfo["cuisine"] = None
+                    recipeInfo["servingSize"] = None
+                    recipeInfo["ingredients"] = ingredients
+                    self.recipes[row[0]] = Recipe(recipeInfo)
 
 # A request to take one of a set of courses at some particular times.
 class Request:
@@ -104,14 +105,13 @@ class Request:
 
 # Given the path to a preference file and a
 class Profile:
-    def __init__(self, recipeBook, prefsPath):
+    def __init__(self, prefsPath):
         """
         Parses the preference file and generates a family's preferences.
 
         @param prefsPath: Path to a txt file that specifies the family's preferences
             in a particular format.
         """
-        self.recipeBook = recipeBook
         
 
         # Read preferences
@@ -134,14 +134,15 @@ class Profile:
         i+=1
         while lines[i] != "---\n":
             ingredToQty = lines[i].split(";")
+            ingredToQty[0] = ingredToQty[0].replace("\n","")
             if ingredToQty[0] in self.availableIngreds.keys():
                 raise Exception("Cannot mention %s more than once" % ingredToQty[0])
-            self.availableIngreds[ingredToQty[0]] = " ".join(j for j in ingredToQty[1:])
+            self.availableIngreds[ingredToQty[0]] = " ".join(j for j in ingredToQty[1:]).replace("\n","")
             i+=1
         if len(self.availableIngreds) == 0:
             self.availableIngreds = None
-        
         self.requests = []
+        '''
         i = 0
         nRecipes = 10
         maxCookingTime = max(self.mealsToMaxTimes.values())
@@ -150,10 +151,18 @@ class Profile:
             if recipe not in self.requests and recipe.getCookingTime() < maxCookingTime:
                 self.requests.append(recipe)
                 i+=1
-
+        '''
+    def setRecipeBook(self,recipeBook):
+        self.recipeBook = recipeBook
+        self.requests.extend(recipeBook.recipes.values())
     def print_info(self):
         print "Maximum Total Calories: %d" % self.maxTotalCalories
         print "Meals: %s" % self.mealsToMaxTimes.keys()
         print "Maximum Time per meal: %s" % self.mealsToMaxTimes
         print "Ingredients:"
         for ingred, qty in self.availableIngreds.iteritems(): print '%s - %s' % (ingred, qty)
+
+profile = Profile("exampleFamilyPref.txt")
+recipeBook = RecipeBook("test.csv", profile)
+profile.print_info()
+print recipeBook.recipes
