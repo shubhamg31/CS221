@@ -1,4 +1,4 @@
-
+import sys, copy
 # A backtracking algorithm that solves weighted CSP.
 # Usage:
 #   search = BacktrackingSearch()
@@ -94,7 +94,6 @@ class BacktrackingSearch():
 
         # The dictionary of domains of every variable in the CSP.
         self.domains = {var: list(self.csp.values[var]) for var in self.csp.variables}
-
         # Perform backtracking search.
         self.backtrack({}, 0, 1)
         # Print summary of solutions.
@@ -134,7 +133,7 @@ class BacktrackingSearch():
                 if self.firstAssignmentNumOperations == 0:
                     self.firstAssignmentNumOperations = self.numOperations
             return
-
+    
         # Select the next variable to be assigned.
         var = self.get_unassigned_variable(assignment)
         # Get an ordering of the values.
@@ -171,7 +170,7 @@ class BacktrackingSearch():
                     # restore the previous domains
                     self.domains = localCopy
                     del assignment[var]
-
+        
     def get_unassigned_variable(self, assignment):
         """
         Given a partial assignment, return a currently unassigned variable.

@@ -8,7 +8,9 @@ import csv
 import string
 from collections import * 
 import processDataSet
+import random
 from sklearn import linear_model
+from sklearn.neighbors import KNeighborsClassifier
 
 # cuisine = Counter()
 # ingredients = Counter()
@@ -27,21 +29,53 @@ from sklearn import linear_model
 # for k, v in ingredients.iteritems():
 # 	print >> f, k, v
 
-def doLogisticRegression(X, Y):
+def doLogisticRegression(train_X, train_Y, test_X, test_Y):
 	logreg = linear_model.LogisticRegression(C=1e5)
-	logreg.fit(X, Y)
-	predictions = logreg.predict(X)
+	logreg.fit(train_X, train_Y)
+	predictions = logreg.predict(test_X)
 
 	count = 0
 	for idx in range(len(predictions)):
-		if predictions[idx] == Y[idx]:
+		if predictions[idx] == test_Y[idx]:
 			count+=1
-	print count*1.0/len(Y)
+	print count*1.0/len(test_Y)
+
+	predictions = logreg.predict(train_X)
+	count = 0
+	for idx in range(len(predictions)):
+		if predictions[idx] == train_Y[idx]:
+			count+=1
+	print count*1.0/len(train_Y)
 	return predictions
 
 X, Y, ingredientSet, cuisineMap = processDataSet.process("../project/data/recipe_data.csv")
-predictions = doLogisticRegression(X, Y)
-Y = Counter(Y)
-predictions = Counter(predictions)
-for k, v in cuisineMap.iteritems():
-	print 'cuisine: ', k, ' original:', Y[v], ' predicted: ', predictions[v]
+
+def doNearestNeighborsClassification(train_X, train_Y, test_X, test_Y):
+	neigh = KNeighborsClassifier()
+	neigh.fit(train_X, train_Y) 
+	predictions = neigh.predict(test_X)
+	count = 0
+	for idx in range(len(predictions)):
+		if predictions[idx] == test_Y[idx]:
+			count+=1
+	print count*1.0/len(test_Y)
+	return predictions
+
+
+samples = range(len(Y))
+random.shuffle(samples)
+partition = int(0.8*len(samples))
+train_x = [X[i] for i in samples[:partition]]
+train_y = [Y[i] for i in samples[:partition]]
+test_x = [X[i] for i in samples[partition+1:]]
+test_y = [Y[i] for i in samples[partition+1:]]	
+
+pred_logreg = doLogisticRegression(train_x, train_y, test_x, test_y)
+## Takes a hell lot of time to run
+# pred_knn = doNearestNeighborsClassification(train_x, train_y, test_x, test_y)
+
+
+# Y = Counter(Y)
+# predictions = Counter(predictions)
+# for k, v in cuisineMap.iteritems():
+# 	print 'cuisine: ', k, ' original:', Y[v], ' predicted: ', predictions[v]
