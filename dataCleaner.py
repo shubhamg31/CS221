@@ -48,6 +48,14 @@ def parseIngredients(ingredients):
 		elem = re.sub('\(.*?\)','', elem)
 		elem = elem.replace("\xe5\xa8", "")
 		elem = elem.replace("\x89\xe3\xa2", "")
+		elem = elem.replace("\xc2\xae", "")
+		elem = elem.replace("\xe2\x84\xa2", "")
+		elem = elem.replace("\xe2\x80\x99s", "")
+		elem = elem.replace("\xe2\x80\x99S", "")
+		elem = elem.replace("\xc2\x96", "")
+		elem = elem.replace("\xe2\x84\xa2", "")
+		# To correct jalapeno
+		elem = elem.replace("\xc3\xb1", "n")
 
 		elem = elem.split()
 		action = ""
@@ -68,15 +76,11 @@ def parseIngredients(ingredients):
 				measure += e + " "
 			else:
 				ingredient_name += e + " "
-		print action
-		print ingredient_name
-		print measure
-		print units		
 		parsed_ingredients.append(ingredient_name.strip()+";"+measure.strip())
 	return parsed_ingredients
 
 valid = 0
-output = open('test.csv', 'wb')
+output = open('data.csv', 'wb')
 csvwriter = csv.writer(output)
 
 with open('scraped.csv', 'rb') as csvfile:
@@ -105,6 +109,7 @@ with open('scraped.csv', 'rb') as csvfile:
 		recipe = [id, title, time, calorie]
 
 		if not ingredients_list:
+			print id
 			print row[idx:]
 			continue
 
