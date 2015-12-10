@@ -26,6 +26,7 @@ class MealPlanCSPConstructor():
         self.add_calorie_count_constraint(csp)
         self.assign_validRecipe_everyMeal(csp)
         self.add_ingredient_quantity_constraint(csp)
+        self.add_recipe_weights(csp)
         return csp
 
     def add_variables(self, csp):
@@ -91,8 +92,8 @@ class MealPlanCSPConstructor():
             util.get_sum_variable(csp, ingred + "total", varsList, self.profile.availableIngreds[ingred])
 
     def add_recipe_weights(self, csp):
-        weight = req.getRating()
         for req in self.profile.requests:
+            weight = req.getRating()
             for meal in self.profile.meals:
                 csp.add_unary_factor((req, meal), lambda taken: weight if taken else 1.0)
 

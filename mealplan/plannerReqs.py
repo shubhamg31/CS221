@@ -178,6 +178,7 @@ class Profile:
     def setRecipeBook(self,recipeBook):
         self.recipeBook = recipeBook
         self.requests.extend(recipeBook.recipes.values())
+        
     def print_info(self):
         print "Maximum Total Calories: %d" % self.maxTotalCalories
         print "Meals: %s" % self.mealsToMaxTimes.keys()
