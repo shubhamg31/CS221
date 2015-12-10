@@ -169,9 +169,7 @@ def extract_meal_plan_solution(profile, assign):
    for meal in profile.meals:
        for req in profile.requests:
             isCooked = assign[(req, meal)]
-            if isCooked == False: 
-                continue
-            else:
+            if isCooked:
                 result.append((req, meal))
    return result
 

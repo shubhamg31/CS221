@@ -53,9 +53,9 @@ cspConstructor = csp.MealPlanCSPConstructor(recipeBook, copy.deepcopy(profile))
 mealCSP = cspConstructor.get_basic_csp()
 alg = algorithms.BacktrackingSearch()
 alg.solve(mealCSP, True, True)
-assignment = alg.allAssignments[0]
-print assignment
-solution = util.extract_meal_plan_solution(profile, assignment)
+# assignment = alg.allAssignments[0]
+# print assignment
+solution = util.extract_meal_plan_solution(profile, alg.optimalAssignment)
 util.print_meal_plan_solution(solution)
 # for assignment in alg.allAssignments:
 #     sol = util.extract_meal_plan_solution(profile, assignment)

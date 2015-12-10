@@ -1,5 +1,6 @@
 import random
 import csv, string
+import collections
 
 ############################################################
 # Meal Plan specifics.
@@ -48,7 +49,7 @@ class Recipe:
     def short_str(self): return '%s: %s' % (self.rid, self.name)
 
     def __str__(self):
-        return 'Recipe{rid: %s, name: %s, cuisine: %s, calorie count: %s, cooking time: %s, serving size: %s}' % (self.rid, self.name, self.cuisine, self.calorieCount, self.cookingTime, self.servingSize)
+        return 'Recipe{rid: %s, name: %s, cuisine: %s, calorie count: %s, cooking time: %s, serving size: %s, ingredients: %s}' % (self.rid, self.name, self.cuisine, self.calorieCount, self.cookingTime, self.servingSize, self.ingredients)
 
     def __eq__(self, other): return str(self) == str(other)
 
@@ -71,15 +72,32 @@ class RecipeBook:
         self.recipes = {}
         with open(recipesPath, 'rb') as dataset:
             for line in dataset:
-                ingredients = {}
+                ingredients = collections.OrderedDict()
                 line = line.split("<>")
                 ingredString = line[6]
                 ingredList = ingredString.split(',')
                 for ingred in ingredList:
                     ingred = ingred.split(';')
-                    ingredients[ingred[0]] = ingred[1]
-
-                if set(ingredients.keys()).issubset(set(profile.availableIngreds.keys())):
+                    slashPos = ingred[1].find('/')
+                    intPart = 0
+                    floatPart = 0.0
+                    if slashPos >= 0:
+                        splits = ingred[1][:slashPos].split()
+                        if len(splits)>1:
+                            intPart = int(splits[0])
+                        floatPart = (float(splits[-1])/float(ingred[1][slashPos+1:]))
+                    else:
+                        try:
+                            intPart = int(ingred[1])
+                        except ValueError:
+                            intPart = 0
+                    ingredients[ingred[0]] = intPart + floatPart
+#                if set(ingredients.keys()).issubset(set(profile.availableIngreds.keys())):
+                flag = True
+                for ingred in ingredients:
+                    if ingred not in profile.availableIngreds or ingredients[ingred]>profile.availableIngreds[ingred]:
+                        flag = False
+                if flag:
                     recipeInfo = {}
                     recipeInfo["rid"] = line[0]
                     recipeInfo["name"] = line[1]
@@ -126,7 +144,23 @@ class Profile:
             ingredToQty[0] = ingredToQty[0].replace("\n","")
             if ingredToQty[0] in self.availableIngreds.keys():
                 raise Exception("Cannot mention %s more than once" % ingredToQty[0])
-            self.availableIngreds[ingredToQty[0].strip()] = " ".join(j.strip() for j in ingredToQty[1:])
+            if len(ingredToQty) > 1:
+                slashPos = ingredToQty[1].find('/')
+                intPart = 0
+                floatPart = 0.0
+                if slashPos >= 0:
+                    splits = ingredToQty[1][:slashPos].split()
+                    if len(splits)>1:
+                        intPart = int(splits[0])
+                    floatPart = (float(splits[-1])/float(ingredToQty[1][slashPos+1:]))
+                else:
+                    try:
+                        intPart = int(ingredToQty[1])
+                    except ValueError:
+                        intPart = 0
+                self.availableIngreds[ingredToQty[0].strip()] = intPart + floatPart
+            else:
+                self.availableIngreds[ingredToQty[0].strip()] = float("inf")
             i+=1
         if len(self.availableIngreds) == 0:
             self.availableIngreds = None
@@ -150,9 +184,10 @@ class Profile:
         print "Maximum Time per meal: %s" % self.mealsToMaxTimes
         print "Ingredients:"
         for ingred, qty in self.availableIngreds.iteritems(): print '%s: %s' % (ingred, qty)
+
 '''
 profile = Profile("exampleFamilyPref.txt")
-recipeBook = RecipeBook("test.csv", profile)
 profile.print_info()
+recipeBook = RecipeBook("recipeData.txt", profile)
 print recipeBook.recipes
 '''
