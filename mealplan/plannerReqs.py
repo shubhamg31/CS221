@@ -81,16 +81,16 @@ class RecipeBook:
                     slashPos = ingred[1].find('/')
                     intPart = 0
                     floatPart = 0.0
-                    if slashPos >= 0:
-                        splits = ingred[1][:slashPos].split()
-                        if len(splits)>1:
-                            intPart = int(splits[0])
-                        floatPart = (float(splits[-1])/float(ingred[1][slashPos+1:]))
-                    else:
-                        try:
+                    try:
+                        if slashPos >= 0:
+                            splits = ingred[1][:slashPos].split()
+                            if len(splits)>1:
+                                intPart = int(splits[0])
+                            floatPart = (float(splits[-1])/float(ingred[1][slashPos+1:]))
+                        else:
                             intPart = int(ingred[1])
-                        except ValueError:
-                            intPart = 0
+                    except ValueError:
+                        intPart = 0
                     ingredients[ingred[0]] = intPart + floatPart
 #                if set(ingredients.keys()).issubset(set(profile.availableIngreds.keys())):
                 flag = True
