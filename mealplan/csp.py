@@ -26,6 +26,7 @@ class MealPlanCSPConstructor():
         self.add_calorie_count_constraint(csp)
         self.assign_validRecipe_everyMeal(csp)
         self.add_recipe_weights(csp)
+        self.add_shelf_life_constraints(csp)
         return csp
 
     def add_variables(self, csp):
@@ -81,6 +82,10 @@ class MealPlanCSPConstructor():
             for meal in self.profile.meals:
                 csp.add_unary_factor((req, meal), lambda taken: weight if taken else 1.0)
 
+    def add_shelf_life_constraints(self, csp):
+        for req in self.profile.requests:
+            for idx, meal in enumerate(self.profile.meals):
+                csp.add_unary_factor((req, meal), lambda taken1: min(req.getShelfLife().values()) >= idx+1 if taken1 else True)
 
 # General code for representing a weighted CSP (Constraint Satisfaction Problem).
 # All variables are being referenced by their index instead of their original

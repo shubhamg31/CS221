@@ -1,19 +1,19 @@
 5000
 L11-11 120
-D11-11 50
+D11-11 20
 L11-12 100
-D11-12 20
+D11-12 50
 L11-13 300
 ---
 blueberry
 all-purpose flour
 baking powder
 salt
-margarine
+margarine:;2
 white sugar
-egg;2
+egg:40
 vanilla extract
-milk;1 gallon
+milk:40
 butter
 cake cake yeast
 water

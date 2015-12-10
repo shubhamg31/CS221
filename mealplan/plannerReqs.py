@@ -41,6 +41,9 @@ class Recipe:
     def getReviewCount(self):
         return self.reviewCount
 
+    def getShelfLife(self):
+        return self.shelfLife
+
     def has_all_ingreds(self, ingredsAvailable):
         if ingredsAvailable is None:
             return True
@@ -73,6 +76,7 @@ class RecipeBook:
         with open(recipesPath, 'rb') as dataset:
             for line in dataset:
                 ingredients = collections.OrderedDict()
+                shelfLife = collections.OrderedDict()
                 line = line.split("<>")
                 ingredString = line[6]
                 ingredList = ingredString.split(',')
@@ -81,7 +85,7 @@ class RecipeBook:
                     slashPos = ingred[1].find('/')
                     intPart = 0
                     floatPart = 0.0
-                    if slashPos >= 0:
+                    if slashPos > 0:
                         splits = ingred[1][:slashPos].split()
                         if len(splits)>1:
                             intPart = int(splits[0])
@@ -97,6 +101,9 @@ class RecipeBook:
                 for ingred in ingredients:
                     if ingred not in profile.availableIngreds or ingredients[ingred]>profile.availableIngreds[ingred]:
                         flag = False
+                    else:
+                        shelfLife[ingred] = profile.ingredShelfLife[ingred]
+
                 if flag:
                     recipeInfo = {}
                     recipeInfo["rid"] = line[0]
@@ -108,6 +115,7 @@ class RecipeBook:
                     recipeInfo["cuisine"] = None
                     recipeInfo["servingSize"] = None
                     recipeInfo["ingredients"] = ingredients
+                    recipeInfo["shelfLife"] = shelfLife
                     self.recipes[line[0]] = Recipe(recipeInfo)
 
 # Given the path to a preference file and a
@@ -126,6 +134,7 @@ class Profile:
         self.maxTotalCalories = float('inf')  # maximum total calories
         self.mealsToMaxTimes = {} # dict from meal to max cooking time
         self.availableIngreds = {} # dict from ingred to quantity
+        self.ingredShelfLife = {} # dict from ingred to shelf life
         lines = []
         file1 = open(prefsPath)
         lines = file1.readlines()
@@ -140,30 +149,44 @@ class Profile:
             i+=1
         i+=1
         while lines[i] != "---\n":
-            ingredToQty = lines[i].split(";")
-            ingredToQty[0] = ingredToQty[0].replace("\n","")
-            if ingredToQty[0] in self.availableIngreds.keys():
+            ingred = lines[i].split(":")
+            ingred[0] = ingred[0].replace("\n","")
+            if ingred[0] in self.availableIngreds.keys():
                 raise Exception("Cannot mention %s more than once" % ingredToQty[0])
-            if len(ingredToQty) > 1:
-                slashPos = ingredToQty[1].find('/')
-                intPart = 0
-                floatPart = 0.0
-                if slashPos >= 0:
-                    splits = ingredToQty[1][:slashPos].split()
-                    if len(splits)>1:
-                        intPart = int(splits[0])
-                    floatPart = (float(splits[-1])/float(ingredToQty[1][slashPos+1:]))
+            if len(ingred) > 1:
+                ingredProps = ingred[1].split(";")
+                if ingredProps[0]:
+                    slashPos = ingredProps[0].find('/')
+                    intPart = 0
+                    floatPart = 0.0
+                    if slashPos > 0:
+                        splits = ingredProps[0][:slashPos].split()
+                        if len(splits)>1:
+                            intPart = int(splits[0])
+                        floatPart = (float(splits[-1])/float(ingredProps[0][slashPos+1:]))
+                    else:
+                        try:
+                            intPart = int(ingredProps[0])
+                        except ValueError:
+                            intPart = 0
+
+                    self.availableIngreds[ingred[0].strip()] = intPart + floatPart
                 else:
-                    try:
-                        intPart = int(ingredToQty[1])
-                    except ValueError:
-                        intPart = 0
-                self.availableIngreds[ingredToQty[0].strip()] = intPart + floatPart
+                    self.availableIngreds[ingred[0].strip()] = float("inf")
+
+                if len(ingredProps) > 1:
+                    self.ingredShelfLife[ingred[0].strip()] = int(ingredProps[1])
+                else:
+                    self.ingredShelfLife[ingred[0].strip()] = float("inf")
             else:
-                self.availableIngreds[ingredToQty[0].strip()] = float("inf")
+                self.availableIngreds[ingred[0].strip()] = float("inf")
+                self.ingredShelfLife[ingred[0].strip()] = float("inf")
+
             i+=1
+
         if len(self.availableIngreds) == 0:
             self.availableIngreds = None
+
         self.requests = []
         '''
         i = 0

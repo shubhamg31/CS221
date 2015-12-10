@@ -43,7 +43,7 @@ def verify_meal_plan(recipeBook, profile, meal_plan):
 
     return goodSchedule
 
-profile = plannerReqs.Profile("../exampleFamilyPref.txt")
+profile = plannerReqs.Profile("exampleFamilyPref.txt")
 # recipeBook = plannerReqs.RecipeBook('../recipeData.txt', profile)
 # recipeBook = plannerReqs.RecipeBook('test.csv', profile)
 recipeBook = plannerReqs.RecipeBook('recipeData.txt', profile)
