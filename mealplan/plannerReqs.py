@@ -41,6 +41,9 @@ class Recipe:
     def getReviewCount(self):
         return self.reviewCount
 
+    def getInstructions(self):
+        return self.instructions
+
     def has_all_ingreds(self, ingredsAvailable):
         if ingredsAvailable is None:
             return True
@@ -105,6 +108,7 @@ class RecipeBook:
                     recipeInfo["calorieCount"] = int(line[3])
                     recipeInfo["rating"] = float(line[4])
                     recipeInfo["reviewCount"] = int(line[5])
+                    recipeInfo["instructions"] = line[7].lower()
                     recipeInfo["cuisine"] = None
                     recipeInfo["servingSize"] = None
                     recipeInfo["ingredients"] = ingredients
@@ -119,10 +123,9 @@ class Profile:
         @param prefsPath: Path to a txt file that specifies the family's preferences
             in a particular format.
         """
-        
-
         # Read preferences
         self.meals = []
+        self.hotMeals = []
         self.maxTotalCalories = float('inf')  # maximum total calories
         self.mealsToMaxTimes = {} # dict from meal to max cooking time
         self.availableIngreds = {} # dict from ingred to quantity
@@ -137,6 +140,11 @@ class Profile:
                 raise Exception("Cannot request %s more than once" % mealToTimeReq[0])
             self.meals.append(mealToTimeReq[0])
             self.mealsToMaxTimes[mealToTimeReq[0]] = int(mealToTimeReq[1])
+            if len(mealToTimeReq)>2:
+                if mealToTimeReq[2].lower()!="hot":
+                    raise Exception("Invalid request. Only \"hot\" keyword or empty string allowed")
+                else:
+                    self.hotMeals.append(mealToTimeReq[0])
             i+=1
         i+=1
         while lines[i] != "---\n":

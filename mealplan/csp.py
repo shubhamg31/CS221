@@ -26,6 +26,7 @@ class MealPlanCSPConstructor():
         self.add_calorie_count_constraint(csp)
         self.assign_validRecipe_everyMeal(csp)
         self.add_ingredient_quantity_constraint(csp)
+        self.add_hot_contraints(csp)
         self.add_recipe_weights(csp)
         return csp
 
@@ -65,6 +66,25 @@ class MealPlanCSPConstructor():
         for req in self.profile.requests:
             for meal in self.profile.meals:
                 csp.add_unary_factor((req, meal), lambda taken1: req.getCookingTime() <= self.profile.mealsToMaxTimes[meal] if taken1 else True)
+
+    def add_hot_contraints(self,csp):
+        def readHotVerbs(fileName):
+            hotVerbs = []
+            with open(fileName, 'rb') as dataset:
+                for line in dataset:
+                    line = line.replace("\n","")
+                    hotVerbs.append(line)
+            return hotVerbs
+        def isHot(hotVerbs, recipe):
+            for verb in hotVerbs:
+                if verb in recipe.getInstructions():
+                    return True
+            return False
+        hotVerbs = readHotVerbs("hotVerbs.txt")
+        for req in self.profile.requests:
+            for meal in self.profile.meals:
+                if meal in self.profile.hotMeals:
+                    csp.add_unary_factor((req, meal), lambda taken1: isHot(hotVerbs, req) if taken1 else True)
 
     def add_calorie_count_constraint(self, csp):
         varsList = []
