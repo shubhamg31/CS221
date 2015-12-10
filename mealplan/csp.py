@@ -59,7 +59,6 @@ class MealPlanCSPConstructor():
             orVar = util.get_or_variable(csp, (meal), requests, True)    
             csp.add_unary_factor(orVar, lambda v: True if v else False)
 
-
     def add_cooking_time_constraints(self, csp):
         for req in self.profile.requests:
             for meal in self.profile.meals:
@@ -74,6 +73,13 @@ class MealPlanCSPConstructor():
                 varsList.append(var)
                 csp.add_binary_factor((req, meal), var, lambda taken1, calorieCount: calorieCount > 0 if taken1 else calorieCount == 0 )
         util.get_sum_variable(csp, "total", varsList, self.profile.maxTotalCalories)
+
+    def add_recipe_weights(self, csp):
+        weight = req.getRating()
+        for req in self.profile.requests:
+            for meal in self.profile.meals:
+                csp.add_unary_factor((req, meal), lambda taken: weight if taken else 1.0)
+
 
 # General code for representing a weighted CSP (Constraint Satisfaction Problem).
 # All variables are being referenced by their index instead of their original

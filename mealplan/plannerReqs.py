@@ -34,6 +34,12 @@ class Recipe:
     def getCuisine(self):
         return self.cuisine
 
+    def getRating(self):
+        return self.rating
+
+    def getReviewCount(self):
+        return self.reviewCount
+
     def has_all_ingreds(self, ingredsAvailable):
         if ingredsAvailable is None:
             return True
@@ -64,53 +70,27 @@ class RecipeBook:
         # Read recipes (CSV format)
         self.recipes = {}
         with open(recipesPath, 'rb') as dataset:
-            datareader = csv.reader(dataset)
-            for row in datareader:
+            for line in dataset:
                 ingredients = {}
-                ingreds = row[4:]
-                for ingred in ingreds:
-                    idx = string.find(ingred,";")
-                    if idx<0:
-                        ingredients[ingred[0:idx]] = 0
-                    else:
-                        idx2 = string.find(ingred[idx+1:],";")
-                        ingredients[ingred[0:idx]] = ingred[idx+1:idx2]
+                line = line.split("<>")
+                ingredString = line[6]
+                ingredList = ingredString.split(',')
+                for ingred in ingredList:
+                    ingred = ingred.split(';')
+                    ingredients[ingred[0]] = ingred[1]
+
                 if set(ingredients.keys()).issubset(set(profile.availableIngreds.keys())):
                     recipeInfo = {}
-                    recipeInfo["rid"] = row[0]
-                    recipeInfo["name"] = row[1]
-                    recipeInfo["cookingTime"] = int(row[2])
-                    recipeInfo["calorieCount"] = int(row[3])
+                    recipeInfo["rid"] = line[0]
+                    recipeInfo["name"] = line[1]
+                    recipeInfo["cookingTime"] = int(line[2])
+                    recipeInfo["calorieCount"] = int(line[3])
+                    recipeInfo["rating"] = float(line[4])
+                    recipeInfo["reviewCount"] = int(line[5])
                     recipeInfo["cuisine"] = None
                     recipeInfo["servingSize"] = None
                     recipeInfo["ingredients"] = ingredients
-                    self.recipes[row[0]] = Recipe(recipeInfo)
-
-# A request to take one of a set of courses at some particular times.
-class Request:
-    def __init__(self, rid, meals, weight):
-        """
-        Create a Request object.
-
-        @param rid: The rid of recipe
-        @param meals: meals for which the recipe satisfies all constraints
-        @param weight: real number denoting how good the recipe is. (if cuisine pref for meal is added)
-        """
-        self.rid = rid
-        self.meals = meals
-        self.weight = weight
-
-    def __str__(self):
-        return 'Request{Recipe Id: %s, Meals: %s, Weight: %s}' % \
-            (self.id, self.meals, self.weight)
-
-    def __eq__(self, other): return str(self) == str(other)
-
-    def __cmp__(self, other): return cmp(str(self), str(other))
-
-    def __hash__(self): return hash(str(self))
-
-    def __repr__(self): return str(self)
+                    self.recipes[line[0]] = Recipe(recipeInfo)
 
 # Given the path to a preference file and a
 class Profile:

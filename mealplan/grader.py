@@ -44,7 +44,9 @@ def verify_meal_plan(recipeBook, profile, meal_plan):
     return goodSchedule
 
 profile = plannerReqs.Profile("../exampleFamilyPref.txt")
-recipeBook = plannerReqs.RecipeBook('test.csv', profile)
+# recipeBook = plannerReqs.RecipeBook('../recipeData.txt', profile)
+# recipeBook = plannerReqs.RecipeBook('test.csv', profile)
+recipeBook = plannerReqs.RecipeBook('recipeData.txt', profile)
 profile.setRecipeBook(recipeBook)
 #profile.print_info()
 cspConstructor = csp.MealPlanCSPConstructor(recipeBook, copy.deepcopy(profile))
