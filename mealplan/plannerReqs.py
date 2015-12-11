@@ -10,9 +10,13 @@ import collections
 # - self.name: name of the recipe
 # - self.cuisine: cuisine of recipe
 # - self.calorieCount: calorie count of recipe
+# - self.rating: average rating for the recipe
+# - self.reviewCount: review counts for the recipe
 # - self.cookingTime: cooking time of recipe
 # - self.servingSize: number of servings
 # - self.ingredients: dictionary of ingredient names to quantity required (infinity for now)
+# - self.shelfLife: shelf life of the ingredients
+# - self.instructions: instructions for making the recipe
 class Recipe:
     def __init__(self, info):
         self.__dict__.update(info)
@@ -88,15 +92,6 @@ class RecipeBook:
                     slashPos = ingred[1].find('/')
                     intPart = 0
                     floatPart = 0.0
-<<<<<<< HEAD
-                    if slashPos > 0:
-                        splits = ingred[1][:slashPos].split()
-                        if len(splits)>1:
-                            intPart = int(splits[0])
-                        floatPart = (float(splits[-1])/float(ingred[1][slashPos+1:]))
-                    else:
-                        try:
-=======
                     try:
                         if slashPos >= 0:
                             splits = ingred[1][:slashPos].split()
@@ -104,7 +99,6 @@ class RecipeBook:
                                 intPart = int(splits[0])
                             floatPart = (float(splits[-1])/float(ingred[1][slashPos+1:]))
                         else:
->>>>>>> ba3b08876d81c6bcda219b910c2e15f5f4bb9fca
                             intPart = int(ingred[1])
                     except ValueError:
                         intPart = 0
