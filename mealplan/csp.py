@@ -25,6 +25,10 @@ class MealPlanCSPConstructor():
         self.add_cooking_time_constraints(csp)
         self.add_calorie_count_constraint(csp)
         self.assign_validRecipe_everyMeal(csp)
+        self.add_ingredient_quantity_constraint(csp)
+        self.add_hot_contraints(csp)
+        self.add_recipe_weights(csp)
+        self.add_shelf_life_constraints(csp)
         return csp
 
     def add_variables(self, csp):
@@ -64,6 +68,25 @@ class MealPlanCSPConstructor():
             for meal in self.profile.meals:
                 csp.add_unary_factor((req, meal), lambda taken1: req.getCookingTime() <= self.profile.mealsToMaxTimes[meal] if taken1 else True)
 
+    def add_hot_contraints(self,csp):
+        def readHotVerbs(fileName):
+            hotVerbs = []
+            with open(fileName, 'rb') as dataset:
+                for line in dataset:
+                    line = line.replace("\n","")
+                    hotVerbs.append(line)
+            return hotVerbs
+        def isHot(hotVerbs, recipe):
+            for verb in hotVerbs:
+                if verb in recipe.getInstructions():
+                    return True
+            return False
+        hotVerbs = readHotVerbs("hotVerbs.txt")
+        for req in self.profile.requests:
+            for meal in self.profile.meals:
+                if meal in self.profile.hotMeals:
+                    csp.add_unary_factor((req, meal), lambda taken1: isHot(hotVerbs, req) if taken1 else True)
+
     def add_calorie_count_constraint(self, csp):
         varsList = []
         for req in self.profile.requests:
@@ -74,12 +97,31 @@ class MealPlanCSPConstructor():
                 csp.add_binary_factor((req, meal), var, lambda taken1, calorieCount: calorieCount > 0 if taken1 else calorieCount == 0 )
         util.get_sum_variable(csp, "total", varsList, self.profile.maxTotalCalories)
 
+    def add_ingredient_quantity_constraint(self, csp):
+        for ingred in self.profile.availableIngreds:
+            varsList = []
+            for req in self.profile.requests:
+                if req.getIngredients()[ingred] > 0:
+                    for meal in self.profile.meals:                    
+                        var = (req.rid, meal, ingred)
+                        if ingred in req.getIngredients():
+                            csp.add_variable(var, [0,req.getIngredients()[ingred]])
+                        else:
+                            csp.add_variable(var, [0])
+                        varsList.append(var)
+                        csp.add_binary_factor((req, meal), var, lambda taken1, ingredQty: ingredQty > 0 if taken1 else ingredQty == 0 )
+            util.get_sum_variable(csp, ingred + "total", varsList, self.profile.availableIngreds[ingred])
+
     def add_recipe_weights(self, csp):
-        weight = req.getRating()
         for req in self.profile.requests:
+            weight = req.getRating()
             for meal in self.profile.meals:
                 csp.add_unary_factor((req, meal), lambda taken: weight if taken else 1.0)
 
+    def add_shelf_life_constraints(self, csp):
+        for req in self.profile.requests:
+            for idx, meal in enumerate(self.profile.meals):
+                csp.add_unary_factor((req, meal), lambda taken1: min(req.getShelfLife().values()) >= idx+1 if taken1 else True)
 
 # General code for representing a weighted CSP (Constraint Satisfaction Problem).
 # All variables are being referenced by their index instead of their original

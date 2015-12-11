@@ -1,0 +1,11 @@
+cook
+boil
+heat
+saute
+cook
+bake
+boil
+fry
+simmer
+preheat
+grill
