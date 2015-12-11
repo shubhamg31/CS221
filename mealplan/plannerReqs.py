@@ -18,32 +18,32 @@ import collections
 # - self.shelfLife: shelf life of the ingredients
 # - self.instructions: instructions for making the recipe
 class Recipe:
-    def __init__(self, info):
-        self.__dict__.update(info)
+	def __init__(self, info):
+		self.__dict__.update(info)
 
-    def getName(self):
-        return self.name
+	def getName(self):
+		return self.name
 
-    def getCalorieCount(self):
-        return self.calorieCount
+	def getCalorieCount(self):
+		return self.calorieCount
 
-    def getCookingTime(self):
-        return self.cookingTime
+	def getCookingTime(self):
+		return self.cookingTime
 
-    def getServingSize(self):
-        return self.servingSize
+	def getServingSize(self):
+		return self.servingSize
 
-    def getIngredients(self):
-        return self.ingredients
+	def getIngredients(self):
+		return self.ingredients
 
-    def getCuisine(self):
-        return self.cuisine
+	def getCuisine(self):
+		return self.cuisine
 
-    def getRating(self):
-        return self.rating
+	def getRating(self):
+		return self.rating
 
-    def getReviewCount(self):
-        return self.reviewCount
+	def getReviewCount(self):
+		return self.reviewCount
 
     def getShelfLife(self):
         return self.shelfLife
@@ -56,18 +56,18 @@ class Recipe:
             return True
         return set(self.ingredients.keys()) < set(ingredsAvailable)
 
-    def short_str(self): return '%s: %s' % (self.rid, self.name)
+	def short_str(self): return '%s: %s' % (self.rid, self.name)
 
     def __str__(self):
         return 'Recipe{rid: %s, name: %s, cuisine: %s, calorie count: %s, cooking time: %s, serving size: %s, ingredients: %s}' % (self.rid, self.name, self.cuisine, self.calorieCount, self.cookingTime, self.servingSize, self.ingredients)
 
-    def __eq__(self, other): return str(self) == str(other)
+	def __eq__(self, other): return str(self) == str(other)
 
-    def __cmp__(self, other): return cmp(str(self), str(other))
+	def __cmp__(self, other): return cmp(str(self), str(other))
 
-    def __hash__(self): return hash(str(self))
+	def __hash__(self): return hash(str(self))
 
-    def __repr__(self): return str(self)
+	def __repr__(self): return str(self)
 
 
 # Information about all the Recipes
